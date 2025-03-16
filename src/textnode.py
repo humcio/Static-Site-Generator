@@ -45,3 +45,5 @@ def text_node_to_html_node(text_node):
             return LeafNode("a", text_node.content, {'href':text_node.url})
         case TextType.IMAGE:
             return LeafNode("img", "", {"src":text_node.url, "alt":text_node.content})
+
+
