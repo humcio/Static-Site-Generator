@@ -3,6 +3,7 @@ import unittest
 from htmlnode import HTMLNode, LeafNode, ParentNode
 from main import text_node_to_html_node
 from textnode import *
+from blocktypes import extract_title
 
 class TestHTMLNode(unittest.TestCase):
     def test_eq(self):
@@ -99,6 +100,27 @@ class TestTextNodeToHTMLNode(unittest.TestCase):
         self.assertEqual(html_node.tag, "b")
         self.assertEqual(html_node.value, "This is bold")
 
+class TestExctractingTitle(unittest.TestCase):
+    def test_extract_title(self):
+        data = "# Hello, world! "
+        expected_result = "Hello, world!"
+        self.assertEqual(extract_title(data), expected_result)
 
+    def test_extract_title_bigger_block(self):
+        data = "# Hello, world! \n ## This is a subheading"
+        expected_result = "Hello, world!"
+        self.assertEqual(extract_title(data), expected_result)
+    
+    def test_extract_title_multiline_block(self):
+        data = """
+# This is the title
+## This is a subheading
+This is **bolded** paragraph
+text in a p
+tag here
 
+This is another paragraph with _italic_ text and `code` here
 
+"""
+        expected_result = "This is the title"
+        self.assertEqual(extract_title(data), expected_result)
