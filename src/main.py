@@ -82,7 +82,7 @@ def generate_page(from_path, template_path, dest_path, basepath):
     html_string = markdown_to_html_node(file_content).to_html()
     title = extract_title(file_content)
     new_content = template_content.replace("{{ Content }}", html_string).replace("{{ Title }}", title)
-    new_content = new_content.replace('href="/', f'href="').replace('src="/', f'src="')
+    new_content = new_content.replace('href="/', f'href="/{basepath}').replace('src="/', f'src="/{basepath}')
     with open(dest_path, "w") as f:
         f.write(new_content)
         
@@ -102,5 +102,8 @@ def generate_pages_recursively(dir_path_content, template_path, dest_dir_path, b
             dest_dir = dir_path_content.replace("content", output_dir)
             print(f"current destination directory is {dest_dir} and directory name is {dir_name}")
             generate_pages_recursively(file, template_path, dest_dir, basepath)
+
+def count_file_depth(file_path):
+    return file_path.count("/") - 2
 
 main()
