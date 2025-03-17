@@ -4,14 +4,22 @@ from blocktypes import *
 from nodedelimiter import *
 import os
 import shutil
+import sys
 
+dir_path_static = "./static"
+dir_path_public = "./docs"
+dir_path_content = "./content"
+template_path = "./static/template.html"
+output_dir = "docs"
 
 def main():
-    new_node = TextNode("This is some dummy content text", TextType.LINK, "https://www.boot.dev")
-    print(new_node)
+    if len(sys.argv) <= 1:
+        basepath = "/"
+    else:
+        basepath = sys.argv[1] + "/"
+    
     update_contents()
-    #generate_page("content/index.md", "static/template.html", "public/index.html")
-    generate_pages_recursively("content", "static/template.html", "public")
+    generate_pages_recursively(dir_path_content, template_path, dir_path_public, basepath)
 
 def get_file_paths(directory="static"):
     print("*******************")
@@ -36,7 +44,7 @@ def copy_files(source, target):
         os.makedirs(os.path.dirname(target_file), exist_ok=True) #this line creates directory if it doesnt exist, if it does it passes the okayge
         shutil.copy(file, target_file)
 
-def remove_contents_of_directory(directory="public"): # gets the directory, goes over every path in it, if its file it removes it and if its directory it removes it and its contents recursively
+def remove_contents_of_directory(directory): # gets the directory, goes over every path in it, if its file it removes it and if its directory it removes it and its contents recursively
     for file in get_file_paths(directory):
         print(f"removing {file} from {directory} directory...")
         if os.path.exists(file):
@@ -56,14 +64,14 @@ def update_contents():
     print("updating contents")
     print("*******************")
 
-    remove_contents_of_directory("public")
-    copy_files("static", "public")
+    remove_contents_of_directory(output_dir)
+    copy_files(dir_path_static, output_dir)
 
     print("*******************")
     print("copying finished")
     print("*******************")
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print(f">>>Generating page from {from_path} to {dest_path} using {template_path}")
     if not os.path.exists(os.path.dirname(dest_path)):
         os.makedirs(os.path.dirname(dest_path))
@@ -74,24 +82,25 @@ def generate_page(from_path, template_path, dest_path):
     html_string = markdown_to_html_node(file_content).to_html()
     title = extract_title(file_content)
     new_content = template_content.replace("{{ Content }}", html_string).replace("{{ Title }}", title)
+    new_content = new_content.replace('href="/', f'href="{basepath}').replace('src="/', f'src="{basepath}')
     with open(dest_path, "w") as f:
         f.write(new_content)
         
-def generate_pages_recursively(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursively(dir_path_content, template_path, dest_dir_path, basepath):
     print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
     print("generating pages recursively")
     print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
 
     for file in get_file_paths(dir_path_content):
-        dest_file_path = file.replace("content", "public").replace(".md", ".html")
+        dest_file_path = file.replace("content", output_dir).replace(".md", ".html")
         print(f"generating pages for {file}, using {template_path} and saving to {dest_dir_path}")
         if file.endswith(".md"):
-            generate_page(file, template_path, dest_file_path)
+            generate_page(file, template_path, dest_file_path, basepath)
 
         elif os.path.isdir(file):
             dir_name = os.path.basename(file)
-            dest_dir = dir_path_content.replace("content", "public")
+            dest_dir = dir_path_content.replace("content", output_dir)
             print(f"current destination directory is {dest_dir} and directory name is {dir_name}")
-            generate_pages_recursively(file, template_path, dest_dir)
+            generate_pages_recursively(file, template_path, dest_dir, basepath)
 
 main()
